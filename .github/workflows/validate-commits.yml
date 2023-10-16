@@ -1,0 +1,56 @@
+name: Repository checks - file existence and modification
+
+on: push
+
+jobs:
+  check-file-existence-and-modification:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with: 
+          # Fetch-depth to fetch all commits for the counter
+          fetch-depth: 0
+
+      - name: Check if enough commits
+        run: |
+
+          # Get the number of commits
+          count=$(git log --oneline | wc -l)
+          echo "$count commit(s) made";
+
+          # Check if enough commits made
+          if [ $count -lt 2 ]; then
+            echo "Not enough commits made." 
+            exit 1 
+          fi
+
+      - name: Check if file exists
+        run: |
+
+          # Set the filename to check
+          filename="hello.txt"
+
+          # Check if the file exists
+          if [ -f "$filename" ]; then
+            echo "Required file $filename exists."
+          else
+            echo "The required file $filename is missing or has been named incorrectly."
+            exit 1
+          fi
+
+      - name: Check file modification
+        run: |
+
+          # Set the filename to check
+          filename="hello.txt"
+
+          # Check if the file has been modified
+          change_count=$(git log --oneline $filename | wc -l)
+          if [ $change_count -gt 1 ]; then
+            echo "The $filename file has been modified in $change_count commits."
+          else
+            echo "No modifications detected in the $filename file across all commits."
+            exit 1
+          fi
